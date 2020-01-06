@@ -15,11 +15,14 @@ def lambda_handler(event, context):
         'name': request['name']
     });
 
-    item = response['Item'];
+    if 'Item' in response:
+        item = response['Item']
 
-    for key in request:
-        item[key] = request[key];
+        for key in request:
+            item[key] = request[key];
 
-    table.put_item(Item=item);
+        table.put_item(Item=item)
 
-    return common.return_response(body={'post': 'success'});
+        return common.return_response(body={'post': 'success'});
+    else:
+        return common.return_response(body={'post': 'Nothing found'});

@@ -1,0 +1,27 @@
+Resources:
+  InstancesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "${{self:custom.db}}-instances"
+      AttributeDefinitions:
+        - AttributeName: "instanceId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "instanceId"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+  autoScalingGroupsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "${{self:custom.db}}-asg"
+      AttributeDefinitions:
+        - AttributeName: "asgName"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "asgName"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"

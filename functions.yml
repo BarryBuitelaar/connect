@@ -1,0 +1,80 @@
+functions:
+  addPAS:
+    handler: "app.add.lambda_handler"
+    description: "Add period/schedule/backup to DB"
+    environment:
+      db: "${{self:custom.db}}"
+    events:
+      - http:
+          path: "pas"
+          method: "post"
+          cors: "${{self:custom.cors}}"
+  removePAS:
+    handler: "app.remove.lambda_handler"
+    description: "Remove period/schedule/backup from DB"
+    environment:
+      db: "${{self:custom.db}}"
+    events:
+      - http:
+          path: "pas"
+          method: "delete"
+          cors: "${{self:custom.cors}}"
+  getPAS:
+    handler: "app.get.lambda_handler"
+    description: "Get period/schedule/backup from DB"
+    environment:
+      db: "${{self:custom.db}}"
+    events:
+      - http:
+          path: "get/pas"
+          method: "post"
+          cors: "${{self:custom.cors}}"
+  modifyPAS:
+    handler: "app.modify.lambda_handler"
+    description: "Modify period/schedule/backup in DB"
+    environment:
+      db: "${{self:custom.db}}"
+    events:
+      - http:
+          path: "modify/pas"
+          method: "post"
+          cors: "${{self:custom.cors}}"
+  putInstances:
+    handler: "app.put_instances.lambda_handler"
+    description: "Put instances"
+    environment:
+      db: "${{self:custom.db}}"
+      ec2keys: "State,Tags"
+      instancesDB: "${{self:custom.db}}-instances"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "pas/instances"
+          method: "post"
+          cors: "${{self:custom.cors}}"
+  getInstances:
+    handler: "app.get_instances.lambda_handler"
+    description: "Get instances"
+    environment:
+      db: "${{self:custom.db}}"
+      ec2keys: "State,Tags"
+      instancesDB: "${{self:custom.db}}-instances"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "pas/instances"
+          method: "get"
+          cors: "${{self:custom.cors}}"
+  putAutoscaling:
+    handler: "app.put_auto_scaling.lambda_handler"
+    description: "Put auto scaling groups"
+    environment:
+      db: "${{self:custom.db}}"
+      asgkeys: "Instances,Tags"
+      asgDB: "${{self:custom.db}}-asg"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "pas/autoscaling"
+          method: "post"
+          cors: "${{self:custom.cors}}"
