@@ -16,24 +16,41 @@ def get_table(prefix, suffix):
             print(F"Table: {table_name} not found");
             return None;
 
+def assume_role(service, RoleArn, region):
+    sts_client = boto3.client('sts');
+    assumed_role_object=sts_client.assume_role(
+            RoleArn=RoleArn,
+            RoleSessionName="AssumeRoleSession1"
+        )
+    credentials=assumed_role_object['Credentials'];
+    service_client=boto3.client(
+            service,
+            aws_access_key_id=credentials['AccessKeyId'],
+            aws_secret_access_key=credentials['SecretAccessKey'],
+            aws_session_token=credentials['SessionToken'],
+            region_name=region
+        );
+
+    return service_client;
+
 class Json(object):
     @staticmethod
     def pretty(obj):
-        return json.dumps(obj=obj, indent=2, default=Json._default)
+        return json.dumps(obj=obj, indent=2, default=Json._default);
 
     @staticmethod
     def compact(obj):
-        return json.dumps(obj=obj, default=Json._default)
+        return json.dumps(obj=obj, default=Json._default);
 
     @staticmethod
     def _default(obj):
-        return obj.__dict__ if '__dict__' in dir(obj) else "{}".format(obj)
+        return obj.__dict__ if '__dict__' in dir(obj) else "{}".format(obj);
 
 def json_body_as_dict(event):
   if "body" not in event:
     return None
   else:
-    return json.loads(event["body"])
+    return json.loads(event["body"]);
 
 def return_response(body: dict) -> dict:
     response = {
@@ -44,4 +61,4 @@ def return_response(body: dict) -> dict:
         },
         "body": Json.compact(body),
     }
-    return response
+    return response;

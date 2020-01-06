@@ -16,26 +16,48 @@ provider:
         - "logs:PutLogEvents"
       Resource: "*"
     - Effect: "Allow"
-      Action:
-        - "dynamodb:UpdateItem"
-        - "dynamodb:Scan"
-        - "dynamodb:GetItem"
-        - "dynamodb:PutItem"
-        - "dynamodb:DeleteItem"
-        - "dynamodb:Query"
-        - "dynamodb:ListTables"
+      Action: "*"
       Resource: "*"
 
 custom:
-    db: "CF-InstanceScheduler-WK"
-    cors:
-      origin: "*"
-      headers:
-        - Access-Control-Allow-Origin
-        - Authorization
-        - Content-Type
-        - X-Amz-Date
-        - X-Amz-Security-Token
+  db: "aws-instance-scheduler"
+  cors:
+    origin: "*"
+    headers:
+      - Access-Control-Allow-Origin
+      - Authorization
+      - Content-Type
+      - X-Amz-Date
+      - X-Amz-Security-Token
+
+resources:
+  Resources:
+    InstancesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: "${self:custom.db}-instances"
+        AttributeDefinitions:
+          - AttributeName: "instanceId"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "instanceId"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: "1"
+          WriteCapacityUnits: "1"
+    autoScalingGroupsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: "${self:custom.db}-asg"
+        AttributeDefinitions:
+          - AttributeName: "asgName"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "asgName"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: "1"
+          WriteCapacityUnits: "1"
 
 functions:
   addPAS:
@@ -78,13 +100,42 @@ functions:
           path: "modify/pas"
           method: "post"
           cors: "${self:custom.cors}"
+  putInstances:
+    handler: "app.put_instances.lambda_handler"
+    description: "Put instances"
+    environment:
+      db: "${self:custom.db}"
+      ec2keys: "State,Tags"
+      instancesDB: "${self:custom.db}-instances"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "pas/instances"
+          method: "post"
+          cors: "${self:custom.cors}"
   getInstances:
     handler: "app.get_instances.lambda_handler"
     description: "Get instances"
     environment:
       db: "${self:custom.db}"
+      ec2keys: "State,Tags"
+      instancesDB: "${self:custom.db}-instances"
+      region: "eu-west-1"
     events:
       - http:
           path: "pas/instances"
+          method: "get"
+          cors: "${self:custom.cors}"
+  putAutoscaling:
+    handler: "app.put_auto_scaling.lambda_handler"
+    description: "Put auto scaling groups"
+    environment:
+      db: "${self:custom.db}"
+      asgkeys: "Instances,Tags"
+      asgDB: "${self:custom.db}-asg"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "pas/autoscaling"
           method: "post"
           cors: "${self:custom.cors}"

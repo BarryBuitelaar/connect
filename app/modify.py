@@ -15,11 +15,11 @@ def lambda_handler(event, context):
         'name': request['name']
     });
 
-    item = response['Item']
+    item = response['Item'];
 
     for key in request:
         item[key] = request[key];
 
-    table.put_item(Item=item)
+    table.put_item(Item=item);
 
     return common.return_response(body={'post': 'success'});
