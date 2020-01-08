@@ -1,15 +1,10 @@
-import boto3;
-import os;
+import boto3
+import os
 
-from boto3.dynamodb.conditions import Key;
+from boto3.dynamodb.conditions import Key
 
-from . import common;
+from . import common
+from app.get_instances_helper import lambda_handler as get_instances
 
 def lambda_handler(event, context):
-    instances_table = boto3.resource("dynamodb").Table(os.environ['instancesDB']);
-
-    response = instances_table.scan(
-        TableName=os.environ['instancesDB']
-    );
-
-    return common.return_response(body=response['Items']);
+    return get_instances(event, os.environ['instancesDB'])

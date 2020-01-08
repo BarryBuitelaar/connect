@@ -78,3 +78,28 @@ functions:
           path: "pas/autoscaling"
           method: "post"
           cors: "${{self:custom.cors}}"
+  getAutoscaling:
+    handler: "app.get_auto_scaling.lambda_handler"
+    description: "Get auto scaling groups"
+    environment:
+      db: "${{self:custom.db}}"
+      asgDB: "${{self:custom.db}}-asg"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "pas/autoscaling"
+          method: "get"
+          cors: "${{self:custom.cors}}"
+  modifyAutoscaling:
+    handler: "app.modify_auto_scaling.lambda_handler"
+    description: "Modify auto scaling groups"
+    environment:
+      asgkeys: 'DailyAMIBackup,WeeklyAMIBackup,MonthlyAMIBackup'
+      asgDB: "${{self:custom.db}}-asg"
+      instancesDB: "${{self:custom.db}}-instances"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "pas/modify/autoscaling"
+          method: "post"
+          cors: "${{self:custom.cors}}"
