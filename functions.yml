@@ -1,61 +1,113 @@
 functions:
-  addPAS:
-    handler: "app.add.lambda_handler"
+  accounts_get:
+    handler: "app.lambda_accounts_get.lambda_handler"
+    description: "Get accounts info from DB"
+    environment:
+      accountsDB: "${{self:custom.db}}-accounts"
+    events:
+      - http:
+          path: "accounts"
+          method: "get"
+          cors: "${{self:custom.cors}}"
+  accounts_put:
+    handler: "app.lambda_accounts_put.lambda_handler"
+    description: "Add account info to DB"
+    environment:
+      accountsDB: "${{self:custom.db}}-accounts"
+      db: "${{self:custom.db}}"
+      accountDB: "${{self:custom.db}}-accounts"
+  pas_add:
+    handler: "app.lambda_pas_put.lambda_handler"
     description: "Add period/schedule/backup to DB"
     environment:
+      accountsDB: "${{self:custom.db}}-accounts"
       db: "${{self:custom.db}}"
     events:
       - http:
           path: "pas"
           method: "post"
           cors: "${{self:custom.cors}}"
-  removePAS:
-    handler: "app.remove.lambda_handler"
-    description: "Remove period/schedule/backup from DB"
+  pas_delete:
+    handler: "app.lambda_pas_delete.lambda_handler"
+    description: "Delete period/schedule/backup from DB"
     environment:
+      accountsDB: "${{self:custom.db}}-accounts"
       db: "${{self:custom.db}}"
+      instancesDB: "${{self:custom.db}}-instances"
+      asgDB: "${{self:custom.db}}-asg"
     events:
       - http:
           path: "pas"
           method: "delete"
           cors: "${{self:custom.cors}}"
-  getPAS:
-    handler: "app.get.lambda_handler"
+  pas_get:
+    handler: "app.lambda_pas_get.lambda_handler"
     description: "Get period/schedule/backup from DB"
     environment:
+      accountsDB: "${{self:custom.db}}-accounts"
       db: "${{self:custom.db}}"
     events:
       - http:
           path: "get/pas"
           method: "post"
           cors: "${{self:custom.cors}}"
-  modifyPAS:
-    handler: "app.modify.lambda_handler"
+  pas_modify:
+    handler: "app.lambda_modify_pas.lambda_handler"
     description: "Modify period/schedule/backup in DB"
     environment:
+      accountsDB: "${{self:custom.db}}-accounts"
       db: "${{self:custom.db}}"
     events:
       - http:
           path: "modify/pas"
           method: "post"
           cors: "${{self:custom.cors}}"
-  putInstances:
-    handler: "app.put_instances.lambda_handler"
+  rds_put:
+    handler: "app.lambda_rds_put.lambda_handler"
+    description: "Put rds"
+    environment:
+      accountsDB: "${{self:custom.db}}-accounts"
+      db: "${{self:custom.db}}"
+      rdsDB: "${{self:custom.db}}-rds"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "pas/rds"
+          method: "post"
+          cors: "${{self:custom.cors}}"
+      - schedule:
+          rate: cron(5 * * * ? *)
+          enabled: true
+  rds_get:
+    handler: "app.lambda_rds_get.lambda_handler"
+    description: "Get rds"
+    environment:
+      accountsDB: "${{self:custom.db}}-accounts"
+      rdsDB: "${{self:custom.db}}-rds"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "pas/rds"
+          method: "get"
+          cors: "${{self:custom.cors}}"
+  instances_put:
+    handler: "app.lambda_instances_put.lambda_handler"
     description: "Put instances"
     environment:
+      accountsDB: "${{self:custom.db}}-accounts"
       db: "${{self:custom.db}}"
       ec2keys: "State,Tags"
       instancesDB: "${{self:custom.db}}-instances"
       region: "eu-west-1"
     events:
-      - http:
-          path: "pas/instances"
-          method: "post"
-          cors: "${{self:custom.cors}}"
-  getInstances:
-    handler: "app.get_instances.lambda_handler"
+      - schedule:
+          rate: cron(5 * * * ? *)
+          enabled: true
+  instances_get:
+    handler: "app.lambda_instances_get.lambda_handler"
     description: "Get instances"
     environment:
+      accountsDB: "${{self:custom.db}}-accounts"
       db: "${{self:custom.db}}"
       ec2keys: "State,Tags"
       instancesDB: "${{self:custom.db}}-instances"
@@ -65,41 +117,160 @@ functions:
           path: "pas/instances"
           method: "get"
           cors: "${{self:custom.cors}}"
-  putAutoscaling:
-    handler: "app.put_auto_scaling.lambda_handler"
-    description: "Put auto scaling groups"
+  auto_scaling_resume_suspend:
+    handler: "app.lambda_auto_scaling_resume_suspend.lambda_handler"
+    description: "Resume or suspend auto scaling group "
     environment:
+      accountsDB: "${{self:custom.db}}-accounts"
       db: "${{self:custom.db}}"
       asgkeys: "Instances,Tags"
       asgDB: "${{self:custom.db}}-asg"
       region: "eu-west-1"
     events:
-      - http:
-          path: "pas/autoscaling"
-          method: "post"
-          cors: "${{self:custom.cors}}"
-  getAutoscaling:
-    handler: "app.get_auto_scaling.lambda_handler"
+      - schedule:
+          rate: cron(1 * * * ? *)
+          enabled: true
+  auto_scaling_put:
+    handler: "app.lambda_auto_scaling_put.lambda_handler"
+    description: "Put auto scaling groups"
+    environment:
+      accountsDB: "${{self:custom.db}}-accounts"
+      db: "${{self:custom.db}}"
+      asgkeys: "Instances,Tags,SuspendedProcesses"
+      asgDB: "${{self:custom.db}}-asg"
+      region: "eu-west-1"
+    events:
+      - schedule:
+          rate: cron(5 * * * ? *)
+          enabled: true
+  auto_scaling_get:
+    handler: "app.lambda_auto_scaling_get.lambda_handler"
     description: "Get auto scaling groups"
     environment:
       db: "${{self:custom.db}}"
       asgDB: "${{self:custom.db}}-asg"
+      accountsDB: "${{self:custom.db}}-accounts"
       region: "eu-west-1"
     events:
       - http:
           path: "pas/autoscaling"
           method: "get"
           cors: "${{self:custom.cors}}"
-  modifyAutoscaling:
-    handler: "app.modify_auto_scaling.lambda_handler"
-    description: "Modify auto scaling groups"
+  modify_tags:
+    handler: "app.lambda_modify_tags.lambda_handler"
+    description: "Modify backup tags for auto scaling groups and instances"
     environment:
-      asgkeys: 'DailyAMIBackup,WeeklyAMIBackup,MonthlyAMIBackup'
+      db: "${{self:custom.db}}"
       asgDB: "${{self:custom.db}}-asg"
       instancesDB: "${{self:custom.db}}-instances"
+      rdsDB: "${{self:custom.db}}-rds"
+      accountsDB: "${{self:custom.db}}-accounts"
       region: "eu-west-1"
     events:
       - http:
-          path: "pas/modify/autoscaling"
+          path: "pas/modify/tags"
+          method: "post"
+          cors: "${{self:custom.cors}}"
+  backup_plan_put:
+    handler: "app.lambda_backup_plan_put.lambda_handler"
+    description: "Put all backup plans"
+    environment:
+      db: "${{self:custom.db}}"
+      backupDB: "${{self:custom.db}}-backupplans"
+      accountsDB: "${{self:custom.db}}-accounts"
+      region: "eu-west-1"
+  backup_plan_get:
+    handler: "app.lambda_backup_plan_get.lambda_handler"
+    description: "Get all backup plans"
+    environment:
+      db: "${{self:custom.db}}"
+      backupDB: "${{self:custom.db}}-backupplans"
+      region: "eu-west-1"
+      accountsDB: "${{self:custom.db}}-accounts"
+    events:
+      - http:
+          path: "backupplans"
+          method: "get"
+          cors: "${{self:custom.cors}}"
+  backup_plan_post:
+    handler: "app.lambda_backup_plan_post.lambda_handler"
+    layers:
+      - arn:aws:lambda:eu-west-1:751072447209:layer:inqdo-boto3:15
+    description: "Add backup plan"
+    environment:
+      db: "${{self:custom.db}}"
+      backupDB: "${{self:custom.db}}-backupplans"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "backupplans"
+          method: "post"
+          cors: "${{self:custom.cors}}"
+  backup_plan_delete:
+    handler: "app.lambda_backup_plan_delete.lambda_handler"
+    description: "Delete backup plan"
+    environment:
+      db: "${{self:custom.db}}"
+      backupDB: "${{self:custom.db}}-backupplans"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "backupplans/{backupPlanId}"
+          method: "delete"
+          cors: "${{self:custom.cors}}"
+  backup_selection_get:
+    handler: "app.lambda_backup_selection_get.lambda_handler"
+    description: "Get backup selections"
+    environment:
+      db: "${{self:custom.db}}"
+      backupSelectionDB: "${{self:custom.db}}-backupselections"
+      accountsDB: "${{self:custom.db}}-accounts"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "backupselections"
+          method: "get"
+          cors: "${{self:custom.cors}}"
+  backup_selection_post:
+    handler: "app.lambda_backup_selection_post.lambda_handler"
+    description: "Add backup selection"
+    environment:
+      db: "${{self:custom.db}}"
+      backupSelectionDB: "${{self:custom.db}}-backupselections"
+      accountsDB: "${{self:custom.db}}-accounts"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "backupselections"
+          method: "post"
+          cors: "${{self:custom.cors}}"
+  backup_selection_delete_:
+    handler: "app.lambda_backup_selection_delete.lambda_handler"
+    description: "Delete backup selection"
+    environment:
+      db: "${{self:custom.db}}"
+      backupSelectionDB: "${{self:custom.db}}-backupselections"
+      instancesDB: "${{self:custom.db}}-instances"
+      accountsDB: "${{self:custom.db}}-accounts"
+      asgDB: "${{self:custom.db}}-asg"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "backupselections/{backupPlanId}/{selectionId}"
+          method: "delete"
+          cors: "${{self:custom.cors}}"
+  backup_selection_assign:
+    handler: "app.lambda_backup_selection_assign.lambda_handler"
+    description: "Assing backup selection to instances"
+    environment:
+      db: "${{self:custom.db}}"
+      backupSelectionDB: "${{self:custom.db}}-backupselections"
+      instancesDB: "${{self:custom.db}}-instances"
+      accountsDB: "${{self:custom.db}}-accounts"
+      asgDB: "${{self:custom.db}}-asg"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "backupselections/assign"
           method: "post"
           cors: "${{self:custom.cors}}"

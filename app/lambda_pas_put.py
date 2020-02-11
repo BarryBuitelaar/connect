@@ -16,6 +16,9 @@ def lambda_handler(event, context):
         "description": request['description']
     }
 
+    if "description" in request:
+        data['description'] = request['description']
+
     if "period" in request['type']:
         data.update(add_period(request))
     else:

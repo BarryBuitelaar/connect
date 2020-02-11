@@ -25,3 +25,55 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: "1"
         WriteCapacityUnits: "1"
+  rdsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "${{self:custom.db}}-rds"
+      AttributeDefinitions:
+        - AttributeName: "rdsName"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "rdsName"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+  accountsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "${{self:custom.db}}-accounts"
+      AttributeDefinitions:
+        - AttributeName: "accountId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "accountId"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+  backupSelectionTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "${{self:custom.db}}-backupselections"
+      AttributeDefinitions:
+        - AttributeName: "SelectionId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "SelectionId"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+  backupPlansTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "${{self:custom.db}}-backupplans"
+      AttributeDefinitions:
+        - AttributeName: "BackupPlanId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "BackupPlanId"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"

@@ -5,7 +5,7 @@ from boto3.dynamodb.conditions import Key
 
 from . import common
 
-def lambda_handler(event, database_name):
+def get_instances(event, database_name):
     instances_table = boto3.resource("dynamodb").Table(database_name)
 
     if 'InstanceId' in event.keys():
@@ -13,9 +13,13 @@ def lambda_handler(event, database_name):
             TableName=database_name,
             KeyConditionExpression=Key("instanceId").eq(event['InstanceId']),
         )
+        return(response['Items'])
     else:
         response = instances_table.scan(
             TableName=database_name
         )
 
-    return common.return_response(body=response['Items'])
+        for res in response['Items']:
+            res['State']['Code'] = int(res['State']['Code'])
+
+        return common.return_response(body=response['Items'])

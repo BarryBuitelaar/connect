@@ -1,6 +1,8 @@
 import json
 import boto3
+import logging
 
+logger = logging.getLogger()
 
 def get_table(prefix, suffix):
     database = boto3.resource('dynamodb')
@@ -42,7 +44,7 @@ class Json(object):
 
     @staticmethod
     def compact(obj):
-        return json.dumps(obj=obj, default=Json._default)
+        return json.dumps(obj=obj)
 
     @staticmethod
     def _default(obj):
@@ -56,7 +58,8 @@ def json_body_as_dict(event):
         return json.loads(event["body"])
 
 
-def return_response(body: dict) -> dict:
+
+def return_response(body: dict):
     response = {
         "statusCode": 200,
         "headers": {
@@ -66,3 +69,12 @@ def return_response(body: dict) -> dict:
         "body": Json.compact(body),
     }
     return response
+
+
+def throw_error(message):
+    global logger
+
+    logger.error(message)
+    return return_response(body={
+        "post_error": message
+    })
