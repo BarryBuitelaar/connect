@@ -7,18 +7,25 @@ from boto3.dynamodb.conditions import Key
 from . import common
 
 from app.fn_get_client import get_client
+from app.fn_set_current_refresh_date import set_current_refresh_date
 
 def lambda_handler(event, context):
+    config_db_name = common.get_table(os.environ['db'], 'ConfigTable')
     asg_table_name = os.environ['asgDB']
     asg_table = boto3.resource("dynamodb").Table(asg_table_name)
     asg_keys = os.environ['asgkeys'].split(',')
-    
+
+    set_current_refresh_date(
+        config_db_name=config_db_name,
+        item_type='asg'
+    )
+
     asg_table_response = asg_table.scan(
         TableName=asg_table_name
     )['Items']
 
     client_items = get_client(os.environ['accountsDB'], 'autoscaling')
-    
+
     all_auto_scaling_groups = []
 
     for client in client_items:
@@ -42,7 +49,7 @@ def lambda_handler(event, context):
             for key in asg_keys:
                 asg_items[key] = group[key]
                 asg_group_dict[group_name] = asg_items
-            
+
             asg_groups.append(asg_group_dict)
 
         for asg_group in asg_groups:
@@ -62,7 +69,6 @@ def lambda_handler(event, context):
                     TableName=os.environ['asgDB'],
                     Item=data
                 )
-                
 
         for asg in asg_table_response:
             if asg['asgName'] not in all_auto_scaling_groups:
@@ -71,3 +77,4 @@ def lambda_handler(event, context):
                         "asgName": asg['asgName']
                     }
                 )
+    return common.return_response(body={'post': 'success'})

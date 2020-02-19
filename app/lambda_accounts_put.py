@@ -38,3 +38,5 @@ def lambda_handler(event, context):
                 )
             except ClientError as e:
                 common.throw_error(F"Failed add account information: {AccountId} = {e}")
+
+    return common.return_response(body={'post': 'success'})

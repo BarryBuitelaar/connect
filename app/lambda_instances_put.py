@@ -7,12 +7,20 @@ from boto3.dynamodb.conditions import Key
 from . import common
 
 from app.fn_get_client import get_client
+from app.fn_set_current_refresh_date import set_current_refresh_date
+
 
 def lambda_handler(event, context):
+    config_db_name = common.get_table(os.environ['db'], 'ConfigTable')
     instance_table_name = os.environ['instancesDB']
     instances_table = boto3.resource("dynamodb").Table(instance_table_name)
     ec2_keys = os.environ['ec2keys'].split(',')
-    
+
+    set_current_refresh_date(
+        config_db_name=config_db_name,
+        item_type='instances'
+    )
+
     instance_table_response = instances_table.scan(
         TableName=instance_table_name
     )['Items']
@@ -62,3 +70,4 @@ def lambda_handler(event, context):
                     "instanceId": instance['instanceId']
                 }
             )
+    return common.return_response(body={'post': 'success'})

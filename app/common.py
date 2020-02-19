@@ -1,8 +1,25 @@
 import json
 import boto3
 import logging
+import random
+import traceback
+from os import environ
+from typing import Union, Callable, List
+from datetime import datetime
+import re
 
-logger = logging.getLogger()
+# logger = logging.getLogger()
+
+_REGEX_SEPARATOR = re.compile("[/\\\\]")
+
+
+def logger_name(file_name):
+    return _REGEX_SEPARATOR.split(file_name)[-1][:-3]
+
+
+logger = logging.getLogger(logger_name(__file__))
+
+log_base_name = None
 
 def get_table(prefix, suffix):
     database = boto3.resource('dynamodb')
@@ -78,3 +95,38 @@ def throw_error(message):
     return return_response(body={
         "post_error": message
     })
+
+def handle_error():
+    trace = traceback.format_exc()
+    error_id = "{:%Y-%m-%d %H:%M:%S}-{}".format(datetime.now(), random.randint(1000, 9999))
+    logger.error("An uncaught exception occurred. Error ID %s. Detail %s", error_id, trace)
+
+    return return_response(
+        body={"Error": "Oops something went wrong. Error ID \"{}\"".format(error_id)}
+    )
+
+def config_logging_to_aws():
+    formatter = logging.Formatter(
+        fmt="{asctime} [{levelname}] '{name}' - {message}",
+        style="{",
+        datefmt="%Y-%m-%dT%H:%M:%S.%fZ",
+    )
+    root = logging.getLogger()
+    if root.handlers:
+        for handler in root.handlers:
+            handler.setFormatter(formatter)
+
+    inqdo_logger = logging.getLogger("inqdo")
+    if "LogLevel" in environ:
+        inqdo_logger.setLevel(environ["LogLevel"])
+    else:
+        inqdo_logger.setLevel(logging.INFO)
+
+def lambda_handler(file: str, event, context, delegate: Callable):
+    config_logging_to_aws()
+    # noinspection PyBroadException
+    try:
+        response = delegate(event=event, context=context)
+    except Exception:
+        return handle_error()
+    return response

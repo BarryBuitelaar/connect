@@ -48,7 +48,7 @@ def lambda_handler(event, context):
     backup_values = get_backup_values(request, backup_keys)
 
     if item_key == 'asgName':
-        modify_asg_tags(request, asg_db_name=asg_db_name, instances_db_name=instances_db_name, instance_tag={'Key': 'AWSSchedule', 'Value': tag_key})
+        modify_asg_tags(request, asg_db_name=asg_db_name, instances_db_name=instances_db_name, instance_tag={'Key': 'ASGSchedule', 'Value': tag_key})
 
     else:
         modify_instance(

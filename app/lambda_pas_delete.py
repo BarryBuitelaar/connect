@@ -10,6 +10,7 @@ def lambda_handler(event, context):
     dynamo_DB = common.get_table(os.environ['db'], 'ConfigTable')
     instances_db_name = os.environ['instancesDB']
     asg_db_name = os.environ['asgDB']
+    rds_db_name = os.environ['rdsDB']
 
     table = boto3.resource("dynamodb").Table(dynamo_DB)
 
@@ -75,7 +76,14 @@ def lambda_handler(event, context):
                     'Key': 'AWSSchedule',
                     'Value': request['name']
                 }
-                modify_asg_tags(request=new_request, instances_db_name=instances_db_name, asg_db_name=asg_db_name, instance_tag=tags, delete=True)
+                modify_asg_tags(
+                    request=new_request,
+                    instances_db_name=instances_db_name,
+                    asg_db_name=asg_db_name,
+                    instance_tag=tags,
+                    rds_db_name=rds_db_name,
+                    delete=True
+                )
 
         try:
             table.delete_item(

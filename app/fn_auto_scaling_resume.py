@@ -13,28 +13,10 @@ h.setFormatter(logging.Formatter(FORMAT))
 logger.addHandler(h)
 logger.setLevel(logging.INFO)
 
-# Set the global variables
-globalVars = {}
-
-def setGlobalVars(event):
-
-    
-    # Set the global variables if provided via evnet JSON
-    try:
-        globalVars['region'] = event.get('region', "eu-west-1")
-        globalVars['arn'] = event.get('arn', "")
-        globalVars['asg'] = event.get('asg', "")
-        globalVars['Instances'] = event.get('Instances',"")
-    except Exception as e:
-        logger.error("ERROR: problem setting globalVars - {0}".format( str(e) ) )
-
 # noinspection PyUnusedLocal
 def auto_scaling_resume(event):
-
-    setGlobalVars(event)
-
-    #Switch Role and define Boto clients and STS Boto client in that account
-    RoleArn = globalVars.get('arn')
+    RoleArn = event['arn']
+    region = event['region']
     sts_client = boto3.client('sts')
     assumed_role_object=sts_client.assume_role(
         RoleArn= RoleArn,
@@ -46,25 +28,24 @@ def auto_scaling_resume(event):
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
         aws_session_token=credentials['SessionToken'],
-        region_name=globalVars['region']
-    )   
+        region_name=region
+    )
     autoscaling_client=boto3.client(
         'autoscaling',
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
         aws_session_token=credentials['SessionToken'],
-        region_name=globalVars['region']
-    )   
-
-    asg_name = globalVars.get('asg')
-    instances = globalVars.get('Instances')
+        region_name=region
+    )
+    asg_name = event['asg']
+    instances = event['Instances']
 
     #Start instances
     if len(instances)==0:
         print(f"No instances found in group {asg_name}")
         # print(f"Therefore {asg_name} will not be resumed.")
         # to_resume_asgs.remove(to_resume_asg)
-    else:    
+    else:
         instance_ids = [
             i["InstanceId"]
             for i in instances
@@ -77,11 +58,10 @@ def auto_scaling_resume(event):
             print(f"ERROR: Could not start instances for group {asg_name}: {e}")
             # print(f"Therefore {asg_name} will not be resumed.")
             # to_resume_asgs.remove(to_resume_asg)
-                
-        
+
     print ('wait for 15 seconds before resume autoscalinggroup')
     time.sleep(15)
-        
+
     #Resume the asg Group
     try:
         response = autoscaling_client.resume_processes(AutoScalingGroupName=asg_name)
@@ -89,5 +69,5 @@ def auto_scaling_resume(event):
         print(asg_name + ' is resumed')
     except ClientError as e:
         print(f"ERROR: Could not resume {asg_name}: {e}")
-        
+
     print('Finished all work.')

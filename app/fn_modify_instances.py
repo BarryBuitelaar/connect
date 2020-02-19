@@ -74,7 +74,6 @@ def modify_instance(item, request, table, backup_values, db, region):
                     db_arn = rds_item['DBInstanceArn']
 
                     if backup_values[0][backup_value] == True:
-                        print('setting tag', db_arn, modified_tag)
                         response = rds_client.add_tags_to_resource(
                             ResourceName=db_arn,
                             Tags=[modified_tag]

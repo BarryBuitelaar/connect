@@ -35,6 +35,7 @@ functions:
       db: "${{self:custom.db}}"
       instancesDB: "${{self:custom.db}}-instances"
       asgDB: "${{self:custom.db}}-asg"
+      rdsDB: "${{self:custom.db}}-rds"
     events:
       - http:
           path: "pas"
@@ -72,11 +73,12 @@ functions:
       region: "eu-west-1"
     events:
       - http:
-          path: "pas/rds"
-          method: "post"
+          path: "put/rds"
+          
+          method: "get"
           cors: "${{self:custom.cors}}"
       - schedule:
-          rate: cron(5 * * * ? *)
+          rate: cron(2 * * * ? *)
           enabled: true
   rds_get:
     handler: "app.lambda_rds_get.lambda_handler"
@@ -101,8 +103,12 @@ functions:
       region: "eu-west-1"
     events:
       - schedule:
-          rate: cron(5 * * * ? *)
+          rate: cron(2 * * * ? *)
           enabled: true
+      - http:
+          path: "put/instances"
+          method: "get"
+          cors: "${{self:custom.cors}}"
   instances_get:
     handler: "app.lambda_instances_get.lambda_handler"
     description: "Get instances"
@@ -117,9 +123,38 @@ functions:
           path: "pas/instances"
           method: "get"
           cors: "${{self:custom.cors}}"
+  instances_start:
+    handler: "app.lambda_instances_start.lambda_handler"
+    description: "Start instances"
+    environment:
+      accountsDB: "${{self:custom.db}}-accounts"
+      db: "${{self:custom.db}}"
+      ec2keys: "State,Tags"
+      instancesDB: "${{self:custom.db}}-instances"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "start/instances"
+          method: "post"
+          cors: "${{self:custom.cors}}"
+  instances_stop:
+    handler: "app.lambda_instances_stop.lambda_handler"
+    description: "Stop instances"
+    environment:
+      accountsDB: "${{self:custom.db}}-accounts"
+      db: "${{self:custom.db}}"
+      ec2keys: "State,Tags"
+      instancesDB: "${{self:custom.db}}-instances"
+      region: "eu-west-1"
+    events:
+      - http:
+          path: "stop/instances"
+          method: "post"
+          cors: "${{self:custom.cors}}"
   auto_scaling_resume_suspend:
     handler: "app.lambda_auto_scaling_resume_suspend.lambda_handler"
-    description: "Resume or suspend auto scaling group "
+    description: "Resume or suspend auto scaling group"
+    timeout: "90"
     environment:
       accountsDB: "${{self:custom.db}}-accounts"
       db: "${{self:custom.db}}"
@@ -141,8 +176,12 @@ functions:
       region: "eu-west-1"
     events:
       - schedule:
-          rate: cron(5 * * * ? *)
+          rate: cron(2 * * * ? *)
           enabled: true
+      - http:
+          path: "put/autoscalinggroups"
+          method: "get"
+          cors: "${{self:custom.cors}}"
   auto_scaling_get:
     handler: "app.lambda_auto_scaling_get.lambda_handler"
     description: "Get auto scaling groups"
