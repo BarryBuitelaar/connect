@@ -155,4 +155,4 @@ def update_backup_selections_db(selection_table, projection):
             logger.error(F'Could not update selection {selection["SelectionId"]}: {e}')
             error_count += 1
 
-    return common.return_response(body={'post': 'could not update {error_count} selections in table'})
+    return common.return_response(body={'post': F'could not update {error_count} selections in table'})
