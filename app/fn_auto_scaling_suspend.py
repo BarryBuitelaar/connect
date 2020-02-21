@@ -2,26 +2,18 @@ import datetime, boto3, os, json, logging, time, traceback
 from botocore.exceptions import ClientError
 import datetime, sys
 
-# Set the log format
-logger = logging.getLogger()
-for h in logger.handlers:
-    logger.removeHandler(h)
+from . import common
 
-h = logging.StreamHandler(sys.stdout)
-FORMAT = ' [%(levelname)s]/%(asctime)s/%(name)s - %(message)s'
-h.setFormatter(logging.Formatter(FORMAT))
-logger.addHandler(h)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(common.logger_name(__file__))
 
 
-# noinspection PyUnusedLocal
 def auto_scaling_suspend(event):
     RoleArn = event['arn']
     region = event['region']
     sts_client = boto3.client('sts')
     assumed_role_object=sts_client.assume_role(
         RoleArn= RoleArn,
-        RoleSessionName="AssumeRoleSession1"
+        RoleSessionName='AssumeRoleSession1'
     )
     credentials=assumed_role_object['Credentials']
     ec2_client=boto3.client(
@@ -39,22 +31,22 @@ def auto_scaling_suspend(event):
         region_name=region
     )
 
-    #Suspend the asg group
+    # suspend the asg group
     asg_name = event['asg']
     try:
         response = autoscaling_client.suspend_processes(AutoScalingGroupName=asg_name)
         print(response)
         print(asg_name + ' is suspended')
     except ClientError as e:
-        print(f"ERROR: Could not suspend {asg_name}: {e}")
+        print(F'ERROR: Could not suspend {asg_name}: {e}')
 
     print('wait for 5 seconds before stopping instances')
     time.sleep(5)
 
-    #Stop instances
+    # stop instances
     instances = event['Instances']
     instance_ids = [
-        i["InstanceId"]
+        i['InstanceId']
         for i in instances
     ]
     print(instance_ids)
@@ -62,6 +54,6 @@ def auto_scaling_suspend(event):
         ec2_client.stop_instances(InstanceIds=instance_ids)
         print('stopped your instances: ' + str(instance_ids))
     except ClientError as e:
-        print(f"ERROR: Could not stop instances for group {asg_name}: {e}")
+        print(F'ERROR: Could not stop instances for group {asg_name}: {e}')
 
     print('Finished all work.')

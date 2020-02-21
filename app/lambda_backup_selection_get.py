@@ -1,26 +1,15 @@
-import boto3
-import os
-import logging
-import datetime, sys
+import os, logging
 
+import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 from . import common
 
-logger = logging.getLogger()
-for h in logger.handlers:
-    logger.removeHandler(h)
-
-h = logging.StreamHandler(sys.stdout)
-FORMAT = ' [%(levelname)s]/%(asctime)s/%(name)s - %(message)s'
-h.setFormatter(logging.Formatter(FORMAT))
-logger.addHandler(h)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(common.logger_name(__file__))
 
 
 def lambda_handler(event, context):
-    global logger
     backup_selection_db_name = os.environ['backupSelectionDB']
     backup_selection_table = boto3.resource("dynamodb").Table(backup_selection_db_name)
 

@@ -1,14 +1,12 @@
-import boto3
 import os
-import json
-
 from datetime import datetime, timedelta
 
+import boto3
 from boto3.dynamodb.conditions import Key
 
 from . import common
-from app.fn_get_pas_helper import get_pas
 
+from app.fn_get_pas_helper import get_pas
 from app.fn_auto_scaling_resume import auto_scaling_resume
 from app.fn_auto_scaling_suspend import auto_scaling_suspend
 

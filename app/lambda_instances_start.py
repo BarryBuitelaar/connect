@@ -2,9 +2,9 @@
 import logging
 
 import boto3
+from botocore.exceptions import ClientError
 
 from . import common
-from botocore.exceptions import ClientError
 
 logger = logging.getLogger(common.logger_name(__file__))
 
@@ -37,7 +37,6 @@ def _lambda_handler(event, context):
     try:
         ec2.start_instances(
             InstanceIds=[instance_ids] if not t else instance_ids,
-            # DryRun=True
         )
     except ClientError as e:
         return common.throw_error(F"Failed to start instance- Error: {e}")

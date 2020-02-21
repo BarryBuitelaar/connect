@@ -1,6 +1,7 @@
-import boto3, os, logging, time, traceback, sys
-from botocore.exceptions import ClientError
+import os, logging
 
+import boto3
+from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
 from . import common

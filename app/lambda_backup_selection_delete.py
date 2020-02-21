@@ -1,7 +1,7 @@
-import datetime, boto3, os, json, logging, time, traceback
-from botocore.exceptions import ClientError
-import datetime, sys
+import os, logging
 
+import boto3
+from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
 from app.fn_get_client import get_client
@@ -9,16 +9,7 @@ from app.fn_modify_asg_tags import modify_asg_tags
 
 from . import common
 
-# Set the log format
-logger = logging.getLogger()
-for h in logger.handlers:
-    logger.removeHandler(h)
-
-h = logging.StreamHandler(sys.stdout)
-FORMAT = ' [%(levelname)s]/%(asctime)s/%(name)s - %(message)s'
-h.setFormatter(logging.Formatter(FORMAT))
-logger.addHandler(h)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(common.logger_name(__file__))
 
 
 def lambda_handler(event, context):
@@ -97,8 +88,8 @@ def _delete_item(request, backup_table_response, SelectionId, backup_table, back
             }
         )
     except ClientError as e:
-        common.throw_error(f'Could not delete {SelectionId} from Dynamo: {e}')
+        common.throw_error(F'Could not delete {SelectionId} from Dynamo: {e}')
 
     return common.return_response(body={
-      "post_success": f'{SelectionId} is deleted'
+      "post_success": F'{SelectionId} is deleted'
     })

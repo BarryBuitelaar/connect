@@ -1,24 +1,17 @@
-import datetime, boto3, os, json, logging, time, traceback
-from botocore.exceptions import ClientError
-import datetime, sys
+import os, logging
 
+import boto3
+from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
+
 from . import common
 
-# Set the log format
-logger = logging.getLogger()
-for h in logger.handlers:
-    logger.removeHandler(h)
+logger = logging.getLogger(common.logger_name(__file__))
 
-h = logging.StreamHandler(sys.stdout)
-FORMAT = ' [%(levelname)s]/%(asctime)s/%(name)s - %(message)s'
-h.setFormatter(logging.Formatter(FORMAT))
-logger.addHandler(h)
-logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     backup_selection_db_name = os.environ['backupSelectionDB']
-    backup_table = boto3.resource("dynamodb").Table(backup_selection_db_name)
+    backup_table = boto3.resource('dynamodb').Table(backup_selection_db_name)
 
     request = common.json_body_as_dict(event)
 
@@ -46,9 +39,9 @@ def lambda_handler(event, context):
                     'ConditionValue': ConditionValue
                 }]
             })
-        logger.info(f'{SelectionName} is created')
+        logger.info(F'{SelectionName} is created')
     except ClientError as e:
-        logger.error(f'Could not create {SelectionName}: {e}')
+        logger.error(F'Could not create {SelectionName}: {e}')
 
     SelectionId = response['SelectionId']
 
@@ -84,9 +77,9 @@ def _insert_item(backup_table, request, SelectionId):
         )
     except ClientError as e:
         return common.return_response(body={
-            "post_error": F"Could not put selection {SelectionId} into Dynamo: {e}"
+            'post_error': F'Could not put selection {SelectionId} into Dynamo: {e}'
         })
 
     return common.return_response(body={
-        "post_succes": F"Backup plan: {BackupPlanId} is created"
+        'post_succes': F'Backup plan: {BackupPlanId} is created'
     })

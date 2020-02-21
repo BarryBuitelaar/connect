@@ -1,8 +1,6 @@
-import boto3
-import os
-import logging
-import datetime, sys
+import os, logging
 
+import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 

@@ -1,25 +1,16 @@
-import datetime, boto3, os, json, logging, time, traceback
-from botocore.exceptions import ClientError
-import datetime, sys
+import os, logging
 
+import boto3
+from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
+
 from . import common
 
-print (boto3.__version__)
+logger = logging.getLogger(common.logger_name(__file__))
 
-# Set the log format
-logger = logging.getLogger()
-for h in logger.handlers:
-    logger.removeHandler(h)
-
-h = logging.StreamHandler(sys.stdout)
-FORMAT = ' [%(levelname)s]/%(asctime)s/%(name)s - %(message)s'
-h.setFormatter(logging.Formatter(FORMAT))
-logger.addHandler(h)
-logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
-    backup_table = boto3.resource("dynamodb").Table(os.environ['backupDB'])
+    backup_table = boto3.resource('dynamodb').Table(os.environ['backupDB'])
 
     request = common.json_body_as_dict(event)
 
@@ -51,7 +42,7 @@ def lambda_handler(event, context):
     if replication == True:
         ReplRegion = request['repl_region']
         ReplRetention = int(request['repl_retention']) if request['replication'] else None
-        CopyVaultArn = f"arn:aws:backup:{ReplRegion}:{account_id}:backup-vault:Default"
+        CopyVaultArn = F'arn:aws:backup:{ReplRegion}:{account_id}:backup-vault:Default'
 
         BackupPlan['Rules'][0]['CopyActions'] = [{
             'Lifecycle': {'DeleteAfterDays': ReplRetention},
@@ -61,9 +52,9 @@ def lambda_handler(event, context):
     try:
         response = backup_client.create_backup_plan(BackupPlan=BackupPlan)
     except ClientError as e:
-        logger.error(f'ERROR: Could not create {backup_plan_name}: {e}')
+        logger.error(F'ERROR: Could not create {backup_plan_name}: {e}')
         return common.return_response(body={
-            "post_error": F"Backup {backup_plan_name} error {e}"
+            'post_error': F'Backup {backup_plan_name} error {e}'
         })
 
     BackupPlanId = response['BackupPlanId']
@@ -92,11 +83,11 @@ def _insert_item(BackupPlanId, backup_table, request):
     try:
         backup_table.put_item(Item=Item)
     except ClientError as e:
-        logger.error(f'Could not insert backup {BackupPlanId} into Dynamo: {e}')
+        logger.error(F'Could not insert backup {BackupPlanId} into Dynamo: {e}')
         return common.return_response(body={
-            "post_error": F"Backup {request['backupplanname']} error {e}"
+            'post_error': F'Backup {request["backupplanname"]} error {e}'
         })
 
     return common.return_response(body={
-        "post_success": F"Backup plan: {request['backupplanname']} is created"
+        'post_success': F'Backup plan: {request["backupplanname"]} is created'
     })

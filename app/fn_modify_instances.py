@@ -1,9 +1,10 @@
-import boto3
 import os
 
+import boto3
 from boto3.dynamodb.conditions import Key
 
 from . import common
+
 from app.fn_modify_tags import modify_tags
 from app.fn_get_backup_values import get_backup_values
 from app.fn_get_client import get_client

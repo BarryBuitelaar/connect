@@ -1,7 +1,5 @@
-import datetime, boto3, os, json, logging, time, traceback
+import boto3
 from botocore.exceptions import ClientError
-import datetime, sys
-
 from boto3.dynamodb.conditions import Key
 from app.fn_get_client import get_client
 

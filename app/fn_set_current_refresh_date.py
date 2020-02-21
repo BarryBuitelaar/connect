@@ -1,5 +1,7 @@
-import boto3
 from datetime import datetime, timedelta
+
+import boto3
+
 
 def set_current_refresh_date(config_db_name, item_type):
     config_table = boto3.resource("dynamodb").Table(config_db_name)

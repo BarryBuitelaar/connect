@@ -1,19 +1,13 @@
-import datetime, boto3, os, json, logging, time, traceback
+import time, logging
+
+import boto3
 from botocore.exceptions import ClientError
-import datetime, sys
 
-# Set the log format
-logger = logging.getLogger()
-for h in logger.handlers:
-    logger.removeHandler(h)
+from . import common
 
-h = logging.StreamHandler(sys.stdout)
-FORMAT = ' [%(levelname)s]/%(asctime)s/%(name)s - %(message)s'
-h.setFormatter(logging.Formatter(FORMAT))
-logger.addHandler(h)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(common.logger_name(__file__))
 
-# noinspection PyUnusedLocal
+
 def auto_scaling_resume(event):
     RoleArn = event['arn']
     region = event['region']
