@@ -1,9 +1,9 @@
 import logging
 
 import boto3
+from botocore.exceptions import ClientError
 
 from . import common
-from botocore.exceptions import ClientError
 
 logger = logging.getLogger(common.logger_name(__file__))
 
@@ -20,7 +20,6 @@ def _lambda_handler(event, context):
         - arn
         - region
     """
-
     request = common.json_body_as_dict(event)
 
     arn = request["arn"]

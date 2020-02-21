@@ -1,30 +1,22 @@
-import datetime, boto3, os, json, logging, time, traceback
-from botocore.exceptions import ClientError
-import datetime, sys
+import logging, os
 
+import boto3
+from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
 from . import common
 
-logger = logging.getLogger()
-for h in logger.handlers:
-    logger.removeHandler(h)
-
-h = logging.StreamHandler(sys.stdout)
-FORMAT = ' [%(levelname)s]/%(asctime)s/%(name)s - %(message)s'
-h.setFormatter(logging.Formatter(FORMAT))
-logger.addHandler(h)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(common.logger_name(__file__))
 
 
 def lambda_handler(event, context):
     backup_table = boto3.resource("dynamodb").Table(os.environ['backupDB'])
 
-    BackupPlanId = event['pathParameters']['backupPlanId']
+    backup_plan_id = event['pathParameters']['backupPlanId']
 
     backup_plan_response = backup_table.query(
         TableName=os.environ['backupDB'],
-        KeyConditionExpression=Key("BackupPlanId").eq(BackupPlanId),
+        KeyConditionExpression=Key("BackupPlanId").eq(backup_plan_id),
     )['Items'][0]
 
     arn = backup_plan_response['Arn']
@@ -33,30 +25,30 @@ def lambda_handler(event, context):
     backup_client = common.assume_role('backup', arn, region)
 
     try:
-        backup_client.delete_backup_plan(BackupPlanId=BackupPlanId)
-        logger.info(f'{BackupPlanId} is deleted')
+        backup_client.delete_backup_plan(BackupPlanId=backup_plan_id)
+        logger.info(F'{backup_plan_id} is deleted')
     except ClientError as e:
-        logger.error(f'Could not delete {BackupPlanId}: {e}')
+        logger.error(F'Could not delete {backup_plan_id}: {e}')
         return common.return_response(body={
-            "post_error": f'Could not delete {BackupPlanId}: {e}'
+            "post_error": F'Could not delete {backup_plan_id}: {e}'
         })
 
-    return _delete_item(backup_table, BackupPlanId)
+    return _delete_item(backup_table, backup_plan_id)
 
 
-def _delete_item(backup_table, BackupPlanId):
+def _delete_item(backup_table, backup_plan_id):
     try:
         backup_table.delete_item(
             Key={
-                'BackupPlanId': BackupPlanId
+                'BackupPlanId': backup_plan_id
             }
         )
     except ClientError as e:
-        logger.error(f'Could not delete BackupPlan {BackupPlanId}: {e}')
+        logger.error(F'Could not delete BackupPlan {backup_plan_id}: {e}')
         return common.return_response(body={
-          "post_error": f'Could not delete {BackupPlanId}: {e}'
+          "post_error": F'Could not delete {backup_plan_id}: {e}'
         })
 
     return common.return_response(body={
-      "post_success": f'{BackupPlanId} is deleted'
+      "post_success": F'{backup_plan_id} is deleted'
     })
