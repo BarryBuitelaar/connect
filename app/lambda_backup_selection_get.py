@@ -20,5 +20,4 @@ def lambda_handler(event, context):
     except ClientError as e:
       logger.error(F"Received error:{e}")
 
-
     return common.return_response(body=response['Items'])

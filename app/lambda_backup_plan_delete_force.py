@@ -23,50 +23,9 @@ def lambda_handler(event, context):
     
     selections = backup.list_backup_selections(BackupPlanId=backup_plan_id)['BackupSelectionsList']
 
-    if len(selections) > 0:
-        for selection in selections:
-            selection_id = selection['SelectionId']
-            
-            try:
-                backup.delete_backup_selection(
-                    BackupPlanId=backup_plan_id,
-                    SelectionId=selection_id
-                )
-            except ClientError as e:
-                common.throw_error(F'Could not delete {selection_id} for backup {backup_plan_id}: {e}')
-            else:
-                _delete_backup_selection_db(selection_table, selection_id)
+    for selection in selections:
+        selection_id = selection['SelectionId']
 
-        logger.info(F'All selections for backup plan {backup_plan_id} removed')
-        
-    try:    
-        response = backup.delete_backup_plan(BackupPlanId=backup_plan_id)
-        logger.info(F'{backup_plan_id} is deleted')
-    except ClientError as e:
-        common.throw_error(F'Could not delete {backup_plan_id}: {e}')
-    else:
-        _delete_backup_plan_db(backup_table, backup_plan_id)
+        common.delete_backup_selection(backup, selection_table, backup_plan_id, selection_id)
 
-    return common.return_response(body={'post': 'success'})
-
-
-def _delete_backup_plan_db(backup_table, backup_plan_id):
-    try:
-        backup_table.delete_item(
-            Key={
-                'BackupPlanId': backup_plan_id
-            }
-        )
-    except ClientError as e:
-        return common.throw_error(F'Could not delete BackupPlan {backup_plan_id} from table: {e}')
-
-
-def _delete_backup_selection_db(selection_table, selection_id):
-    try:
-        selection_table.delete_item(
-            Key={
-                'SelectionId': selection_id
-            }
-        )
-    except ClientError as e:
-        return common.throw_error(F'Could not delete BackupSelection {selection_id} from table: {e}')
+    return common.delete_backup_plan(backup, backup_table, backup_plan_id)

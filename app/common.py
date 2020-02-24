@@ -1,14 +1,14 @@
 import json
-import boto3
 import logging
 import random
+import re
 import traceback
 from os import environ
 from typing import Union, Callable, List
 from datetime import datetime
-import re
 
-# logger = logging.getLogger()
+import boto3
+from botocore.exceptions import ClientError
 
 _REGEX_SEPARATOR = re.compile("[/\\\\]")
 
@@ -130,3 +130,63 @@ def lambda_handler(file: str, event, context, delegate: Callable):
     except Exception:
         return handle_error()
     return response
+
+
+def delete_backup_plan(client, table, backup_plan_id):
+    try:    
+        response = client.delete_backup_plan(BackupPlanId=backup_plan_id)
+        logger.info(F'{backup_plan_id} is deleted')
+    except ClientError as e:
+        return throw_error(F'Could not delete {backup_plan_id}: {e}')
+    else:
+        return _delete_backup_plan_db(table, backup_plan_id)
+
+
+def _delete_backup_plan_db(table, backup_plan_id):
+    try:
+        table.delete_item(
+            Key={
+                'BackupPlanId': backup_plan_id
+            }
+        )
+    except ClientError as e:
+        return throw_error(F'Could not delete BackupPlan {backup_plan_id} from table {table}: {e}')
+
+    success_message = F'{backup_plan_id} is deleted'
+
+    logger.info(success_message)
+
+    return return_response(body={
+        'post_success': success_message
+    })
+
+
+def delete_backup_selection(client, table, backup_plan_id, selection_id):
+    try:
+        client.delete_backup_selection(
+            BackupPlanId=backup_plan_id,
+            SelectionId=selection_id
+        )
+    except ClientError as e:
+        return throw_error(F'Could not delete {selection_id} for backup {backup_plan_id}: {e}')
+    else:
+        return _delete_backup_selection_db(table, selection_id)
+
+
+def _delete_backup_selection_db(table, selection_id):
+    try:
+        table.delete_item(
+            Key={
+                'SelectionId': selection_id
+            }
+        )
+    except ClientError as e:
+        return throw_error(F'Could not delete BackupSelection {selection_id} from table {table}: {e}')
+
+    success_message = F'{selection_id} is deleted'
+
+    logger.info(success_message)
+
+    return return_response(body={
+        'post_success': success_message
+    })  

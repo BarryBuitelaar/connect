@@ -17,9 +17,9 @@ def lambda_handler(event, context):
     instances_db_name = os.environ['instancesDB']
     asg_db_name = os.environ['asgDB']
 
-    backup_table = boto3.resource("dynamodb").Table(backup_selection_db_name)
-    instances_table = boto3.resource("dynamodb").Table(instances_db_name)
-    asg_table = boto3.resource("dynamodb").Table(asg_db_name)
+    backup_table = boto3.resource('dynamodb').Table(backup_selection_db_name)
+    instances_table = boto3.resource('dynamodb').Table(instances_db_name)
+    asg_table = boto3.resource('dynamodb').Table(asg_db_name)
 
     BackupPlanId = event['pathParameters']['backupPlanId']
     SelectionId = event['pathParameters']['selectionId']
@@ -31,18 +31,14 @@ def lambda_handler(event, context):
 
     backup_table_response = backup_table.query(
         TableName=backup_selection_db_name,
-        KeyConditionExpression=Key("SelectionId").eq(SelectionId),
+        KeyConditionExpression=Key('SelectionId').eq(SelectionId),
     )['Items'][0]
 
     backup_plan_client = common.assume_role(service='backup', role_arn=arn, region=region)
 
-    try:
-        backup_plan_client.delete_backup_selection(BackupPlanId=BackupPlanId, SelectionId=SelectionId)
-        logger.info(f'{SelectionId} is deleted')
-    except ClientError as e:
-        logger.error(f'Could not delete {SelectionId}: {e}')
+    common.delete_backup_selection(backup_plan_client, backup_table, BackupPlanId, SelectionId)
 
-    return _delete_item(request, backup_table_response, SelectionId, backup_table, backup_selection_db_name, instances_table, instances_db_name, asg_table, asg_db_name)
+    _delete_item(request, backup_table_response, SelectionId, backup_table, backup_selection_db_name, instances_table, instances_db_name, asg_table, asg_db_name)
 
 
 def _delete_item(request, backup_table_response, SelectionId, backup_table, backup_selection_db_name, instances_table, instances_db_name, asg_table, asg_db_name):
@@ -80,16 +76,3 @@ def _delete_item(request, backup_table_response, SelectionId, backup_table, back
             'autoScalingGroups': asgs
         }
         modify_asg_tags(request=new_request, asg_db_name=asg_db_name, delete=True)
-
-    try:
-        backup_table.delete_item(
-            Key={
-                'SelectionId': SelectionId
-            }
-        )
-    except ClientError as e:
-        common.throw_error(F'Could not delete {SelectionId} from Dynamo: {e}')
-
-    return common.return_response(body={
-      "post_success": F'{SelectionId} is deleted'
-    })
