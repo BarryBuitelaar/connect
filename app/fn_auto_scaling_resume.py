@@ -22,16 +22,13 @@ def auto_scaling_resume(event):
 
     # start instances
     if instances:
-        instance_ids = [
-            i["InstanceId"]
-            for i in instances
-        ]
+        instance_ids = [i["InstanceId"] for i in instances]
 
         try:
             ec2_client.start_instances(InstanceIds=instance_ids)
             logger.info(F'Started your instances: {instance_ids}')
         except ClientError as e:
-            logger.error(F'Could not start instances for group {asg_name}: {e}')
+            return common.throw_error(F'Could not start instances for group {asg_name}: {e}')
     else:
         logger.info(F'No instances found in group {asg_name}')
 
@@ -43,4 +40,8 @@ def auto_scaling_resume(event):
         response = autoscaling_client.resume_processes(AutoScalingGroupName=asg_name)
         logger.info(F'{asg_name} is resumed')
     except ClientError as e:
-        logger.error(F'Could not resume {asg_name}: {e}')
+        return common.throw_error(F'Could not resume ASG {asg_name}: {e}')
+
+    return common.return_response(body={
+        'post_success': F'{asg_name} is resumed, {len(instances)} started'
+    })

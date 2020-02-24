@@ -8,6 +8,7 @@ from . import common
 from app.fn_get_client import get_client
 from app.fn_set_current_refresh_date import set_current_refresh_date
 
+
 def lambda_handler(event, context):
     config_db_name = common.get_table(os.environ['db'], 'ConfigTable')
     asg_table_name = os.environ['asgDB']
@@ -41,8 +42,8 @@ def lambda_handler(event, context):
 
         for group in all_asgs:
             group_name = group['AutoScalingGroupName']
-            asg_group_dict = dict()
-            asg_items = dict()
+            asg_group_dict = {}
+            asg_items = {}
 
             all_auto_scaling_groups.append(group_name)
             for key in asg_keys:

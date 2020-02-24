@@ -1,5 +1,6 @@
 import boto3
 from boto3.dynamodb.conditions import Key
+
 from . import common
 
 def get_client(account_db, service):

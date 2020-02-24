@@ -39,7 +39,7 @@ def lambda_handler(event, context):
         ]
     }
 
-    if replication == True:
+    if replication == 'true':
         ReplRegion = request['repl_region']
         ReplRetention = int(request['repl_retention']) if request['replication'] else None
         CopyVaultArn = F'arn:aws:backup:{ReplRegion}:{account_id}:backup-vault:Default'
@@ -52,10 +52,7 @@ def lambda_handler(event, context):
     try:
         response = backup_client.create_backup_plan(BackupPlan=BackupPlan)
     except ClientError as e:
-        logger.error(F'ERROR: Could not create {backup_plan_name}: {e}')
-        return common.return_response(body={
-            'post_error': F'Backup {backup_plan_name} error {e}'
-        })
+        return common.throw_error(F'Backup {backup_plan_name} could not be created: {e}')
 
     BackupPlanId = response['BackupPlanId']
 
@@ -76,17 +73,14 @@ def _insert_item(BackupPlanId, backup_table, request):
         'Region': request['selectedAccount']['region']
     }
 
-    if request['replication'] == True:
+    if request['replication']:
         Item['ReplRegion'] = request['repl_region']
         Item['ReplRetention'] = request['repl_retention']
 
     try:
         backup_table.put_item(Item=Item)
     except ClientError as e:
-        logger.error(F'Could not insert backup {BackupPlanId} into Dynamo: {e}')
-        return common.return_response(body={
-            'post_error': F'Backup {request["backupplanname"]} error {e}'
-        })
+        return common.throw_error(F'Could not insert backup {BackupPlanId} into table: {e}')
 
     return common.return_response(body={
         'post_success': F'Backup plan: {request["backupplanname"]} is created'

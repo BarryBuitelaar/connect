@@ -14,14 +14,14 @@ def modify_instance(item, request, table, backup_values, db, region):
     response = table.get_item(Key={ item: request[item] })['Item']
     backup_value = list(backup_values[0].keys())[0]
 
-    if backup_values[0][backup_value] == True:
+    if backup_values[0][backup_value]:
         modification_response = modify_tags(
             response=response,
             backup_values=backup_values,
             tag_for_asg=False,
             tag_for_aws=True
         )
-        table.put_item(Item=modification_response, ReturnValues='NONE')
+        table.put_item(Item=modification_response)
     else:
         tag_index = response['Tags'].index({'Key':'AWSSchedule', 'Value': backup_value})
 
@@ -47,7 +47,7 @@ def modify_instance(item, request, table, backup_values, db, region):
         if item == 'instanceId':
             ec2_client = common.assume_role(service='ec2', role_arn=response['arn'], region=response['region'])
 
-            if backup_values[0][backup_value] == True:
+            if backup_values[0][backup_value]:
                 print('set tag', response['instanceId'], modified_tag)
                 modification_for_instances_response = ec2_client.create_tags(
                     DryRun=False,
@@ -74,7 +74,7 @@ def modify_instance(item, request, table, backup_values, db, region):
                 if request[item] == rds_item['DBInstanceIdentifier']:
                     db_arn = rds_item['DBInstanceArn']
 
-                    if backup_values[0][backup_value] == True:
+                    if backup_values[0][backup_value]:
                         response = rds_client.add_tags_to_resource(
                             ResourceName=db_arn,
                             Tags=[modified_tag]

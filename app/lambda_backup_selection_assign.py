@@ -17,7 +17,7 @@ def lambda_handler(event, context):
     instances_db_name = os.environ['instancesDB']
     asg_db_name = os.environ['asgDB']
 
-    backup_selection_table = boto3.resource("dynamodb").Table(backup_selection_db_name)
+    backup_selection_table = boto3.resource('dynamodb').Table(backup_selection_db_name)
 
     request = common.json_body_as_dict(event)
 
@@ -48,37 +48,37 @@ def _instert_item(auto_scaling_groups, instances, tag_key, selection_id, backup_
         for item in items:
             backup_selection_obj = backup_selection_table.query(
                 TableName=backup_selection_db_name,
-                KeyConditionExpression=Key("SelectionId").eq(selection_id),
+                KeyConditionExpression=Key('SelectionId').eq(selection_id),
             )['Items'][0]
-            id = list(item.keys())[0]
-            value = item[id]
+            identification = list(item.keys())[0]
+            value = item[identification]
 
-            if value == True:
+            if value:
                 if table_item in backup_selection_obj:
-                    backup_selection_obj[table_item].append({ id: True  })
+                    backup_selection_obj[table_item].append({ identification: True  })
                 else:
-                    backup_selection_obj[table_item] = [{ id: True  }]
+                    backup_selection_obj[table_item] = [{ identification: True  }]
     
                 try:
-                    backup_selection_table.put_item(Item=backup_selection_obj, ReturnValues='NONE')
+                    backup_selection_table.put_item(Item=backup_selection_obj)
                 except ClientError as e:
-                    common.throw_error(F"Failed to append {id} - Error: {e}")
+                    common.throw_error(F'Failed to append {identification}: {e}')
             else:
-                tag_index_bs = backup_selection_obj[table_item].index({ id: True })
+                tag_index_bs = backup_selection_obj[table_item].index({ identification: True })
 
                 try:
                     backup_selection_table.update_item(
                         Key={
-                            "SelectionId": selection_id,
+                            'SelectionId': selection_id,
                         },
-                        UpdateExpression=F"remove {table_item}[{tag_index_bs}]"
+                        UpdateExpression=F'remove {table_item}[{tag_index_bs}]'
                     )
                 except ClientError as e:
-                    common.throw_error(F"Failed to modify {id} - Error: {e}")
+                    common.throw_error(F'Failed to modify {identification}: {e}')
 
     helper(auto_scaling_groups, 'AutoScalingGroups')
     helper(instances, 'Instances')
 
     return common.return_response(body={
-        "post_success": "Modified instance(s)"
+        'post_success': 'Modified instance(s)'
     })

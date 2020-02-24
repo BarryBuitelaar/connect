@@ -19,7 +19,6 @@ def logger_name(file_name):
 
 logger = logging.getLogger(logger_name(__file__))
 
-log_base_name = None
 
 def get_table(prefix, suffix):
     database = boto3.resource('dynamodb')

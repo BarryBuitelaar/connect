@@ -35,7 +35,7 @@ def lambda_handler(event, context):
         instances_items = {}
         items = []
 
-        for ec2 in ec2_client.describe_instances().get( 'Reservations', [] ):
+        for ec2 in ec2_client.describe_instances().get('Reservations', []):
             for ec2_item in ec2['Instances']:
                 if not 'terminated' in ec2_item['State']['Name']:
                     items.append(ec2_item)

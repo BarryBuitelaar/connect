@@ -82,8 +82,8 @@ def lambda_handler(event, context):
                     instances_db_name=instances_db_name,
                     asg_db_name=asg_db_name,
                     instance_tag=tags,
-                    rds_db_name=rds_db_name,
-                    delete=True
+                    delete=True,
+                    rds_db_name=rds_db_name
                 )
 
         try:

@@ -13,11 +13,10 @@ def lambda_handler(event, context):
     backup_table = boto3.resource("dynamodb").Table(os.environ['backupDB'])
 
     try:
-      response = backup_table.scan(
-          TableName=os.environ['backupDB']
-      )
+        response = backup_table.scan(
+            TableName=os.environ['backupDB']
+        )
     except ClientError as e:
-      logger.error(F"Received error:{e}")
-
+        logger.error(F"Received error: {e}")
 
     return common.return_response(body=response['Items'])

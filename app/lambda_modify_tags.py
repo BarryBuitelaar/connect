@@ -19,12 +19,12 @@ def lambda_handler(event, context):
     db = os.environ['db']
     region = os.environ['region']
 
-    asg_table = boto3.resource("dynamodb").Table(asg_db_name)
-    instances_table = boto3.resource("dynamodb").Table(instances_db_name)
-    rds_table = boto3.resource("dynamodb").Table(rds_table_name)
+    asg_table = boto3.resource('dynamodb').Table(asg_db_name)
+    instances_table = boto3.resource('dynamodb').Table(instances_db_name)
+    rds_table = boto3.resource('dynamodb').Table(rds_table_name)
 
     config_table_name = common.get_table(db, 'ConfigTable')
-    config_table = boto3.resource("dynamodb").Table(config_table_name)
+    config_table = boto3.resource('dynamodb').Table(config_table_name)
 
     request = common.json_body_as_dict(event)
 
@@ -40,10 +40,10 @@ def lambda_handler(event, context):
 
     schedule_table = config_table.query(
         TableName=config_table_name,
-        KeyConditionExpression=Key("type").eq("schedule"),
+        KeyConditionExpression=Key('type').eq('schedule'),
     )['Items']
 
-    backup_keys = list(map(lambda e: e["name"], schedule_table))
+    backup_keys = list(map(lambda e: e['name'], schedule_table))
     backup_values = get_backup_values(request, backup_keys)
 
     if item_key == 'asgName':

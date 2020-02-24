@@ -21,12 +21,13 @@ def lambda_handler(event, context):
     SelectionName = request['selectionName']
 
     selected_account = request['selectedAccount']
-    arn = selected_account['arn']
-    region = selected_account['region']
     IamRoleArn = selected_account['backupDefaultServiceRole']
 
-    backup_plan_client = common.assume_role(service='backup', role_arn=arn, region=region)
+    arn = selected_account['arn']
+    region = selected_account['region']
 
+    backup_plan_client = common.assume_role(service='backup', role_arn=arn, region=region)
+    
     try:
         response = backup_plan_client.create_backup_selection(
             BackupPlanId=BackupPlanId,
@@ -41,7 +42,7 @@ def lambda_handler(event, context):
             })
         logger.info(F'{SelectionName} is created')
     except ClientError as e:
-        logger.error(F'Could not create {SelectionName}: {e}')
+        return common.throw_error(F'Could not create {SelectionName}: {e}')
 
     SelectionId = response['SelectionId']
 
@@ -76,9 +77,7 @@ def _insert_item(backup_table, request, SelectionId):
             }
         )
     except ClientError as e:
-        return common.return_response(body={
-            'post_error': F'Could not put selection {SelectionId} into Dynamo: {e}'
-        })
+        return common.throw_error(F'Could not put selection {SelectionId} into Dynamo: {e}')
 
     return common.return_response(body={
         'post_succes': F'Backup plan: {BackupPlanId} is created'

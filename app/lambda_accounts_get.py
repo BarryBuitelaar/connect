@@ -7,7 +7,7 @@ from . import common
 
 
 def lambda_handler(event, context):
-    accounts_table = boto3.resource("dynamodb").Table(os.environ['accountsDB'])
+    accounts_table = boto3.resource('dynamodb').Table(os.environ['accountsDB'])
 
     response = accounts_table.scan(
         TableName=os.environ['accountsDB']

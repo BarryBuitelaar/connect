@@ -7,14 +7,14 @@ from . import common
 
 def delete_instance_tag(items, tag_key, table, table_name, table_item):
     for item in items:
-        id = list(item.keys())[0]
+        identification = list(item.keys())[0]
 
         table_obj = table.query(
             TableName=table_name,
-            KeyConditionExpression=Key(table_item).eq(id),
+            KeyConditionExpression=Key(table_item).eq(identification),
         )['Items'][0]
 
-        tag = {'Key': tag_key, 'PropagateAtLaunch': True, 'ResourceId': id, 'ResourceType': 'auto-scaling-group', 'Value': 'True'} if table_item == 'asgName' else {'Key': tag_key, 'Value': 'True'}
+        tag = {'Key': tag_key, 'PropagateAtLaunch': True, 'ResourceId': identification, 'ResourceType': 'auto-scaling-group', 'Value': 'True'} if table_item == 'asgName' else {'Key': tag_key, 'Value': 'True'}
 
         tag_index = table_obj['Tags'].index(tag)
 
@@ -24,19 +24,19 @@ def delete_instance_tag(items, tag_key, table, table_name, table_item):
             ec2_client.delete_tags(
                 DryRun=False,
                 Resources=[
-                    id,
+                    identification,
                 ],
                 Tags=[tag]
             )
         except ClientError as e:
-            common.throw_error(F"Failed to delete tag on instance: {id} - Error: {e}")
+            common.throw_error(F"Failed to delete tag on instance: {identification}: {e}")
 
         try:
             table.update_item(
                 Key={
-                    table_item: id,
+                    table_item: identification,
                 },
                 UpdateExpression=F"remove Tags[{tag_index}]"
             )
         except ClientError as e:
-            common.throw_error(F"Failed to delete tag {tag_key} on instance {id} - Error: {e}")
+            common.throw_error(F"Failed to delete tag {tag_key} on instance {identification}: {e}")
