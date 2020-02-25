@@ -37,8 +37,6 @@ def auto_scaling_resume(event):
     #Start instances
     if len(instances)==0:
         print(f"No instances found in group {asg_name}")
-        # print(f"Therefore {asg_name} will not be resumed.")
-        # to_resume_asgs.remove(to_resume_asg)
     else:
         instance_ids = [
             i["InstanceId"]
@@ -50,8 +48,6 @@ def auto_scaling_resume(event):
             print('started your instances: ' + str(instance_ids))
         except ClientError as e:
             print(f"ERROR: Could not start instances for group {asg_name}: {e}")
-            # print(f"Therefore {asg_name} will not be resumed.")
-            # to_resume_asgs.remove(to_resume_asg)
 
     print ('wait for 15 seconds before resume autoscalinggroup')
     time.sleep(15)

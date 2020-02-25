@@ -65,7 +65,7 @@ def _delete_item(request, backup_table_response, SelectionId, backup_table, back
             'Value': 'True'
         }
 
-        modify_asg_tags(request=new_request, instances_db_name=instances_db_name, instance_tag=tags, delete=True)
+        modify_asg_tags(request=new_request, instances_db_name=instances_db_name, instance_tag=tags, require_delete=True)
 
     if 'AutoScalingGroups' in backup_table_response:
         asgs = backup_table_response['AutoScalingGroups']
@@ -79,7 +79,7 @@ def _delete_item(request, backup_table_response, SelectionId, backup_table, back
             'TagKey': tag_key,
             'autoScalingGroups': asgs
         }
-        modify_asg_tags(request=new_request, asg_db_name=asg_db_name, delete=True)
+        modify_asg_tags(request=new_request, asg_db_name=asg_db_name, require_delete=True)
 
     try:
         backup_table.delete_item(

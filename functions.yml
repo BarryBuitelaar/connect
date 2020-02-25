@@ -195,9 +195,9 @@ functions:
           path: "pas/autoscaling"
           method: "get"
           cors: "${{self:custom.cors}}"
-  modify_tags:
-    handler: "app.lambda_modify_tags.lambda_handler"
-    description: "Modify backup tags for auto scaling groups and instances"
+  assign_schedule:
+    handler: "app.lambda_assign_schedule.lambda_handler"
+    description: "Assign schedule tag for auto scaling groups and instances"
     environment:
       db: "${{self:custom.db}}"
       asgDB: "${{self:custom.db}}-asg"
@@ -283,9 +283,9 @@ functions:
           path: "backupselections"
           method: "post"
           cors: "${{self:custom.cors}}"
-  backup_selection_delete_:
+  backup_selection__delete:
     handler: "app.lambda_backup_selection_delete.lambda_handler"
-    description: "Delete backup selection"
+    description: "Delete the backup selection"
     environment:
       db: "${{self:custom.db}}"
       backupSelectionDB: "${{self:custom.db}}-backupselections"
@@ -313,3 +313,28 @@ functions:
           path: "backupselections/assign"
           method: "post"
           cors: "${{self:custom.cors}}"
+  power_off_setting_post:
+    handler: "app.lambda_power_off_setting_post.lambda_handler"
+    description: "Set power off tag on instances"
+    environment:
+      db: "${{self:custom.db}}"
+      instancesDB: "${{self:custom.db}}-instances"
+      accountsDB: "${{self:custom.db}}-accounts"
+      asgDB: "${{self:custom.db}}-asg"
+    events:
+      - http:
+          path: "poweroffsetting"
+          method: "post"
+          cors: "${{self:custom.cors}}"
+  power_off_handler:
+    handler: "app.lambda_power_off_handler.lambda_handler"
+    description: "Power off instances"
+    environment:
+      db: "${{self:custom.db}}"
+      instancesDB: "${{self:custom.db}}-instances"
+      accountsDB: "${{self:custom.db}}-accounts"
+      asgDB: "${{self:custom.db}}-asg"
+    events:
+      - schedule:
+          rate: cron(1 * * * ? *)
+          enabled: true
