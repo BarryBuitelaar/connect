@@ -7,20 +7,20 @@ from . import common
 
 def lambda_handler(event, context):
     dynamo_DB = common.get_table(os.environ['db'], 'ConfigTable')
-    table = boto3.resource("dynamodb").Table(dynamo_DB)
+    table = boto3.resource('dynamodb').Table(dynamo_DB)
 
     request = common.json_body_as_dict(event)
 
     data = {
-        "type": request['type'],
-        "name": request['name'],
-        "description": request['description']
+        'type': request['type'],
+        'name': request['name'],
+        'description': request['description']
     }
 
-    if "description" in request:
+    if 'description' in request:
         data['description'] = request['description']
 
-    if "period" in request['type']:
+    if 'period' in request['type']:
         data.update(add_period(request))
     else:
         data.update(add_schedule(request))
@@ -38,10 +38,10 @@ def add_period(request):
         'weekdays': request['weekdays']
     }
 
-    if "endtime" in request:
+    if 'endtime' in request:
         data['endtime'] = request['endtime']
 
-    if "begintime" in request:
+    if 'begintime' in request:
         data['begintime'] = request['begintime']
 
     return data
@@ -49,9 +49,9 @@ def add_period(request):
 
 def add_schedule(request):
     data = {
-        "periods": request['periods'],
-        "backup": request['backup'],
-        "timezone": request['timezone']
+        'periods': request['periods'],
+        'backup': request['backup'],
+        'timezone': request['timezone']
     }
 
     return data

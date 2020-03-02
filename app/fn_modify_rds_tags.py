@@ -16,7 +16,7 @@ def modify_rds_tags(
     arn = selected_account['arn']
     region = selected_account['region']
 
-    rds_table = boto3.resource("dynamodb").Table(rds_db_name)
+    rds_table = boto3.resource('dynamodb').Table(rds_db_name)
     rds_client = common.assume_role(service='rds', role_arn=arn, region=region)
 
     for inst in rds:
@@ -28,7 +28,7 @@ def modify_rds_tags(
 
                 rds_obj = rds_table.query(
                     TableName=rds_db_name,
-                    KeyConditionExpression=Key("rdsName").eq(rds_name),
+                    KeyConditionExpression=Key('rdsName').eq(rds_name),
                 )['Items'][0]
 
                 if value == True and require_delete == False:
@@ -38,7 +38,7 @@ def modify_rds_tags(
                             Tags=[instance_tag]
                         )
                     except ClientError as e:
-                        return common.throw_error(F"Failed to modify rds {rds_name} - Error: {e}")
+                        return common.throw_error(F'Failed to modify rds {rds_name} - Error: {e}')
 
                     if not instance_tag in rds_obj['Tags']:
                         rds_obj['Tags'].append(instance_tag)
@@ -46,7 +46,7 @@ def modify_rds_tags(
                         try:
                             rds_table.put_item(Item=rds_obj, ReturnValues='NONE')
                         except ClientError as e:
-                            return common.throw_error(F"Failed to modify rds {rds_name} - Error: {e}")
+                            return common.throw_error(F'Failed to modify rds {rds_name} - Error: {e}')
 
                 else:
                     tag_index = rds_obj['Tags'].index(instance_tag)
@@ -59,14 +59,14 @@ def modify_rds_tags(
                             ]
                         )
                     except ClientError as e:
-                        return common.throw_error(F"Failed to modify rds {rds_name} - Error: {e}")
+                        return common.throw_error(F'Failed to modify rds {rds_name} - Error: {e}')
 
                     try:
                         rds_table.update_item(
                             Key={
-                                "rdsName": rds_name,
+                                'rdsName': rds_name,
                             },
-                            UpdateExpression=F"remove Tags[{tag_index}]"
+                            UpdateExpression=F'remove Tags[{tag_index}]'
                         )
                     except ClientError as e:
-                        return common.throw_error(F"Failed to modify rds {rds_name} - Error: {e}")
+                        return common.throw_error(F'Failed to modify rds {rds_name} - Error: {e}')

@@ -17,79 +17,68 @@ def lambda_handler(event, context):
     instances_db_name = os.environ['instancesDB']
     asg_db_name = os.environ['asgDB']
 
-    backup_table = boto3.resource("dynamodb").Table(backup_selection_db_name)
-    instances_table = boto3.resource("dynamodb").Table(instances_db_name)
-    asg_table = boto3.resource("dynamodb").Table(asg_db_name)
-
-    BackupPlanId = event['pathParameters']['backupPlanId']
-    SelectionId = event['pathParameters']['selectionId']
+    backup_table = boto3.resource('dynamodb').Table(backup_selection_db_name)
+    instances_table = boto3.resource('dynamodb').Table(instances_db_name)
+    asg_table = boto3.resource('dynamodb').Table(asg_db_name)
 
     request = common.json_body_as_dict(event)
 
     arn = request['arn']
     region = request['region']
 
+    BackupPlanId = request['backupPlanId']
+    SelectionId = request['selectionId']
+
     backup_table_response = backup_table.query(
         TableName=backup_selection_db_name,
-        KeyConditionExpression=Key("SelectionId").eq(SelectionId),
+        KeyConditionExpression=Key('SelectionId').eq(SelectionId),
     )['Items'][0]
 
     backup_plan_client = common.assume_role(service='backup', role_arn=arn, region=region)
 
-    try:
-        backup_plan_client.delete_backup_selection(BackupPlanId=BackupPlanId, SelectionId=SelectionId)
-        logger.info(f'{SelectionId} is deleted')
-    except ClientError as e:
-        logger.error(f'Could not delete {SelectionId}: {e}')
+    common.delete_backup_selection(backup_plan_client, backup_table, BackupPlanId, SelectionId)
 
-    return _delete_item(request, backup_table_response, SelectionId, backup_table, backup_selection_db_name, instances_table, instances_db_name, asg_table, asg_db_name)
-
-
-def _delete_item(request, backup_table_response, SelectionId, backup_table, backup_selection_db_name, instances_table, instances_db_name, asg_table, asg_db_name):
     if 'Instances' in backup_table_response:
-
-        instances = backup_table_response['Instances']
-        tag_key = backup_table_response['TagKey']
-
-        new_request = {
-            'selectedAccount': {
-                'arn': request['arn'],
-                'region': request['region']
-            },
-            'TagKey': tag_key,
-            'instances': instances
-        }
-
-        tags = {
-            'Key': tag_key,
-            'Value': 'True'
-        }
-
-        modify_asg_tags(request=new_request, instances_db_name=instances_db_name, instance_tag=tags, require_delete=True)
+        _remove_instance_tags(backup_table_response, request, instances_db_name)
 
     if 'AutoScalingGroups' in backup_table_response:
-        asgs = backup_table_response['AutoScalingGroups']
-        tag_key = backup_table_response['TagKey']
+        _remove_asg_tags(backup_table_response, request, asg_db_name)
 
-        new_request = {
-            'selectedAccount': {
-                'arn': request['arn'],
-                'region': request['region']
-            },
-            'TagKey': tag_key,
-            'autoScalingGroups': asgs
-        }
-        modify_asg_tags(request=new_request, asg_db_name=asg_db_name, require_delete=True)
+    return common.delete_backup_selection_db(backup_selection_db_name, SelectionId)
 
-    try:
-        backup_table.delete_item(
-            Key={
-                'SelectionId': SelectionId
-            }
-        )
-    except ClientError as e:
-        common.throw_error(F'Could not delete {SelectionId} from Dynamo: {e}')
 
-    return common.return_response(body={
-      "post_success": F'{SelectionId} is deleted'
-    })
+def _remove_instance_tags(backup_table_response, request, instances_db_name):
+    instances = backup_table_response['Instances']
+    tag_key = backup_table_response['TagKey']
+
+    new_request = {
+        'selectedAccount': {
+            'arn': request['arn'],
+            'region': request['region']
+        },
+        'TagKey': tag_key,
+        'instances': instances
+    }
+
+    tags = {
+        'Key': tag_key,
+        'Value': 'True'
+    }
+
+    modify_asg_tags(request=new_request, instances_db_name=instances_db_name, instance_tag=tags, delete=True)
+
+
+def _remove_asg_tags(backup_table_response, request, asg_db_name):
+    asgs = backup_table_response['AutoScalingGroups']
+    tag_key = backup_table_response['TagKey']
+
+    new_request = {
+        'selectedAccount': {
+            'arn': request['arn'],
+            'region': request['region']
+        },
+        'TagKey': tag_key,
+        'autoScalingGroups': asgs
+    }
+
+    modify_asg_tags(request=new_request, asg_db_name=asg_db_name, delete=True)

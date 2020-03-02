@@ -8,10 +8,11 @@ from . import common
 from app.fn_get_client import get_client
 from app.fn_set_current_refresh_date import set_current_refresh_date
 
+
 def lambda_handler(event, context):
     config_db_name = common.get_table(os.environ['db'], 'ConfigTable')
     asg_table_name = os.environ['asgDB']
-    asg_table = boto3.resource("dynamodb").Table(asg_table_name)
+    asg_table = boto3.resource('dynamodb').Table(asg_table_name)
     asg_keys = os.environ['asgkeys'].split(',')
 
     set_current_refresh_date(
@@ -41,8 +42,8 @@ def lambda_handler(event, context):
 
         for group in all_asgs:
             group_name = group['AutoScalingGroupName']
-            asg_group_dict = dict()
-            asg_items = dict()
+            asg_group_dict = {}
+            asg_items = {}
 
             all_auto_scaling_groups.append(group_name)
             for key in asg_keys:
@@ -54,9 +55,9 @@ def lambda_handler(event, context):
         for asg_group in asg_groups:
             for key in asg_group.keys():
                 data = {
-                    "asgName": key,
-                    "accountId": client['account_id'],
-                    "accountAlias": client['account_alias'],
+                    'asgName': key,
+                    'accountId': client['account_id'],
+                    'accountAlias': client['account_alias'],
                     'region': client['region'],
                     'arn': client['arn']
                 }
@@ -73,7 +74,7 @@ def lambda_handler(event, context):
             if asg['asgName'] not in all_auto_scaling_groups:
                 asg_table.delete_item(
                     Key={
-                        "asgName": asg['asgName']
+                        'asgName': asg['asgName']
                     }
                 )
     return common.return_response(body={'post': 'success'})

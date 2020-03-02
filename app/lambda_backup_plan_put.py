@@ -22,12 +22,12 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     dynamo_DB = common.get_table(os.environ['db'], 'ConfigTable')
-    config_table = boto3.resource("dynamodb").Table(dynamo_DB)
-    # backup_table = boto3.resource("dynamodb").Table(os.environ['backupDB'])
+    config_table = boto3.resource('dynamodb').Table(dynamo_DB)
+    # backup_table = boto3.resource('dynamodb').Table(os.environ['backupDB'])
 
     config_table_response = config_table.query(
         TableName=dynamo_DB,
-        KeyConditionExpression=Key("type").eq('config'),
+        KeyConditionExpression=Key('type').eq('config'),
     )
 
     config_table_items = config_table_response['Items'][0]
@@ -41,7 +41,7 @@ def lambda_handler(event, context):
         response = backup_plan_client.list_backup_plans()
         backup_plans_list = response['BackupPlansList']
 
-        backup_plans_id_list = map(lambda el: el["BackupPlanId"], backup_plans_list)
+        backup_plans_id_list = map(lambda el: el['BackupPlanId'], backup_plans_list)
 
         # retrieve and store all backup plans
         for backup_plan_id in backup_plans_id_list:
@@ -52,8 +52,8 @@ def lambda_handler(event, context):
             # get selections for backup_plan_id
             backup_selections = backup_plan_client.list_backup_selections(
                 BackupPlanId=backup_plan_id
-            )["BackupSelectionsList"]
-            backup_selections_ids = map(lambda el: el["SelectionId"], backup_selections)
+            )['BackupSelectionsList']
+            backup_selections_ids = map(lambda el: el['SelectionId'], backup_selections)
 
             backup_selections = []
             # get all selections
@@ -63,7 +63,7 @@ def lambda_handler(event, context):
                     SelectionId=backup_selection_id
                 )
                 backup_selections.append(backup_selection)
-            backup_plan["selections"] = backup_selections
+            backup_plan['selections'] = backup_selections
             backup_plans.append(backup_plan)
             
         # Ignores responseMetaData-fields

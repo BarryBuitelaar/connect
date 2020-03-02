@@ -1,4 +1,4 @@
-import logging, os, sys
+import logging, os
 
 import boto3
 from botocore.exceptions import ClientError
@@ -126,7 +126,7 @@ def project_selection(selections):
 
 
 def update_backup_selections_db(selection_table, projection):
-    error_count = 0
+    error_selections = []
 
     for selection in projection:
         record_update = {
@@ -153,6 +153,6 @@ def update_backup_selections_db(selection_table, projection):
             )
         except ClientError as e:
             logger.error(F'Could not update selection {selection["SelectionId"]}: {e}')
-            error_count += 1
+            error_selections.append(selection['SelectionId'])
 
-    return common.return_response(body={'post': F'could not update {error_count} selections in table'})
+    return common.return_response(body={'post': F'could not update selections {error_selections} in table'})

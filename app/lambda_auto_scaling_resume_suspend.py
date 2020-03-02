@@ -13,8 +13,8 @@ from app.fn_auto_scaling_suspend import auto_scaling_suspend
 def lambda_handler(event, context):
     dynamo_DB = common.get_table(os.environ['db'], 'ConfigTable')
     asg_db_name = os.environ['asgDB']
-    config_table = boto3.resource("dynamodb").Table(dynamo_DB)
-    asg_table = boto3.resource("dynamodb").Table(asg_db_name)
+    config_table = boto3.resource('dynamodb').Table(dynamo_DB)
+    asg_table = boto3.resource('dynamodb').Table(asg_db_name)
 
     current_time = (datetime.now() + timedelta(hours=1)).strftime('%H:%M')
     current_weekday = datetime.now().isoweekday()
@@ -99,10 +99,10 @@ def lambda_handler(event, context):
                     resume_asg.append(key)
 
             response_dict = {
-                "asg": key,
-                "arn": sup[key]['arn'],
-                "region": sup[key]['region'],
-                "Instances": sup[key]['Instances']
+                'asg': key,
+                'arn': sup[key]['arn'],
+                'region': sup[key]['region'],
+                'Instances': sup[key]['Instances']
             }
 
             if resume:

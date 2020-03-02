@@ -17,7 +17,7 @@ def modify_instances_tags(
     arn = selected_account['arn']
     region = selected_account['region']
 
-    instances_table = boto3.resource("dynamodb").Table(instances_db_name)
+    instances_table = boto3.resource('dynamodb').Table(instances_db_name)
     ec2_client = common.assume_role(service='ec2', role_arn=arn, region=region)
 
     for inst in instances:
@@ -26,7 +26,7 @@ def modify_instances_tags(
 
         instance_obj = instances_table.query(
             TableName=instances_db_name,
-            KeyConditionExpression=Key("instanceId").eq(instance_id),
+            KeyConditionExpression=Key('instanceId').eq(instance_id),
         )['Items'][0]
 
         if value == True and require_delete == False:
@@ -39,7 +39,7 @@ def modify_instances_tags(
                     Tags=[instance_tag]
                 )
             except ClientError as e:
-                return common.throw_error(F"Failed to modify instance {instance_id} - Error: {e}")
+                return common.throw_error(F'Failed to modify instance {instance_id} - Error: {e}')
 
             if not instance_tag in instance_obj['Tags']:
                 instance_obj['Tags'].append(instance_tag)
@@ -47,7 +47,7 @@ def modify_instances_tags(
                 try:
                     instances_table.put_item(Item=instance_obj, ReturnValues='NONE')
                 except ClientError as e:
-                    return common.throw_error(F"Failed to modify instance {instance_id} - Error: {e}")
+                    return common.throw_error(F'Failed to modify instance {instance_id} - Error: {e}')
 
         else:
             if instance_tag in instance_obj['Tags']:
@@ -69,14 +69,14 @@ def modify_instances_tags(
                     Tags=[modified_tag]
                 )
             except ClientError as e:
-                return common.throw_error(F"Failed to modify instance {instance_id} - Error: {e}")
+                return common.throw_error(F'Failed to modify instance {instance_id} - Error: {e}')
 
             try:
                 instances_table.update_item(
                     Key={
-                        "instanceId": instance_id,
+                        'instanceId': instance_id,
                     },
-                    UpdateExpression=F"remove Tags[{tag_index}]"
+                    UpdateExpression=F'remove Tags[{tag_index}]'
                 )
             except ClientError as e:
-                return common.throw_error(F"Failed to modify instance {instance_id} - Error: {e}")
+                return common.throw_error(F'Failed to modify instance {instance_id} - Error: {e}')

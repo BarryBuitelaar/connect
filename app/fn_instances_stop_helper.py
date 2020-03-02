@@ -9,7 +9,7 @@ logger = logging.getLogger(common.logger_name(__file__))
 
 
 def stop_instances(event, context):
-    """
+    '''
     Single instance:
         - Instances
         - arn
@@ -19,17 +19,17 @@ def stop_instances(event, context):
         - Instances
         - arn
         - region
-    """
+    '''
 
     request = common.json_body_as_dict(event) if context is not False else event
 
-    arn = request["arn"]
+    arn = request['arn']
     region = request['region']
 
     ec2 = common.assume_role('ec2', arn, region)
     auto_scaling_client = common.assume_role('autoscaling', arn, region)
 
-    instance_ids = request["instances"]
+    instance_ids = request['instances']
 
     t = type(instance_ids) == list
 
@@ -38,12 +38,12 @@ def stop_instances(event, context):
             InstanceIds=[instance_ids] if not t else instance_ids
         )
     except ClientError as e:
-        return common.throw_error(F"Failed to stop instances - Error: {e}")
+        return common.throw_error(F'Failed to stop instances - Error: {e}')
 
     if t:
         try:
-            auto_scaling_client.suspend_processes(AutoScalingGroupName=request["asgName"])
+            auto_scaling_client.suspend_processes(AutoScalingGroupName=request['asgName'])
         except ClientError as e:
-            return common.throw_error(F"Failed to suspend {request['asgName']} - Error: {e}")
+            return common.throw_error(F'Failed to suspend {request["asgName"]} - Error: {e}')
 
-    return common.return_response(body={"post_success": 'stopped instances {instance_ids}'})
+    return common.return_response(body={'post_success': 'stopped instances {instance_ids}'})
