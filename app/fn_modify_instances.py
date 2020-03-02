@@ -29,7 +29,7 @@ def modify_instance(item, request, table, backup_values, db, region):
             Key={
                 item: request[item],
             },
-            UpdateExpression=F"remove Tags[{tag_index}]"
+            UpdateExpression=F'remove Tags[{tag_index}]'
         )
 
     tags = modify_tags(
@@ -86,6 +86,3 @@ def modify_instance(item, request, table, backup_values, db, region):
                                 'AWSSchedule'
                             ]
                         )
-
-
-

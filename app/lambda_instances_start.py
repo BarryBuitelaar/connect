@@ -10,6 +10,9 @@ logger = logging.getLogger(common.logger_name(__file__))
 
 def lambda_handler(event, context):
     '''
+    deals with both starting a single instance, or starting multiple instances and an ASG depending
+    on provided parameters
+
     required parameters:
         start single instance:
             - instance

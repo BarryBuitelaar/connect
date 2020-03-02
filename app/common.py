@@ -10,7 +10,7 @@ from datetime import datetime
 import boto3
 from botocore.exceptions import ClientError
 
-_REGEX_SEPARATOR = re.compile("[/\\\\]")
+_REGEX_SEPARATOR = re.compile('[/\\\\]')
 
 
 def logger_name(file_name):
@@ -31,7 +31,7 @@ def get_table(prefix, suffix):
         if table_name in table:
             return table
         else:
-            print(F"Table: {table_name} not found")
+            print(F'Table: {table_name} not found')
             return None
 
 
@@ -39,7 +39,7 @@ def assume_role(service, role_arn, region):
     sts_client = boto3.client('sts')
     assumed_role_object=sts_client.assume_role(
         RoleArn=role_arn,
-        RoleSessionName="AssumeRoleSession1"
+        RoleSessionName='AssumeRoleSession1'
     )
     credentials=assumed_role_object['Credentials']
     service_client=boto3.client(
@@ -64,25 +64,25 @@ class Json(object):
 
     @staticmethod
     def _default(obj):
-        return obj.__dict__ if '__dict__' in dir(obj) else "{}".format(obj)
+        return obj.__dict__ if '__dict__' in dir(obj) else '{}'.format(obj)
 
 
 def json_body_as_dict(event):
-    if "body" not in event:
+    if 'body' not in event:
         return None
     else:
-        return json.loads(event["body"])
+        return json.loads(event['body'])
 
 
 
 def return_response(body: dict):
     response = {
-        "statusCode": 200,
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "application/json",
+        'statusCode': 200,
+        'headers': {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json',
         },
-        "body": Json.compact(body),
+        'body': Json.compact(body),
     }
     return response
 
@@ -92,16 +92,16 @@ def throw_error(message):
 
     logger.error(message)
     return return_response(body={
-        "post_error": message
+        'post_error': message
     })
 
 def handle_error():
     trace = traceback.format_exc()
-    error_id = "{:%Y-%m-%d %H:%M:%S}-{}".format(datetime.now(), random.randint(1000, 9999))
-    logger.error("An uncaught exception occurred. Error ID %s. Detail %s", error_id, trace)
+    error_id = '{:%Y-%m-%d %H:%M:%S}-{}'.format(datetime.now(), random.randint(1000, 9999))
+    logger.error('An uncaught exception occurred. Error ID %s. Detail %s', error_id, trace)
 
     return return_response(
-        body={"Error": "Oops something went wrong. Error ID \"{}\"".format(error_id)}
+        body={'Error': 'Oops something went wrong. Error ID \'{}\''.format(error_id)}
     )
 
 def config_logging_to_aws():
@@ -115,9 +115,9 @@ def config_logging_to_aws():
         for handler in root.handlers:
             handler.setFormatter(formatter)
 
-    inqdo_logger = logging.getLogger("inqdo")
-    if "LogLevel" in environ:
-        inqdo_logger.setLevel(environ["LogLevel"])
+    inqdo_logger = logging.getLogger('inqdo')
+    if 'LogLevel' in environ:
+        inqdo_logger.setLevel(environ['LogLevel'])
     else:
         inqdo_logger.setLevel(logging.INFO)
 
