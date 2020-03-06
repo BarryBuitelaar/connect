@@ -12,9 +12,7 @@ logger = logging.getLogger(common.logger_name(__file__))
 def lambda_handler(event, context):
     backup_table = boto3.resource('dynamodb').Table(os.environ['backupDB'])
 
-    request = common.json_body_as_dict(event)
-
-    backup_plan_id = request['backupPlanId']
+    backup_plan_id = event['pathParameters']['backupPlanId']
 
     backup_plan_response = backup_table.query(
         TableName=os.environ['backupDB'],

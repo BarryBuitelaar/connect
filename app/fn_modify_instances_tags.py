@@ -7,12 +7,12 @@ from . import common
 
 
 def modify_instances_tags(
-    selected_account=dict,
-    instance_tag=dict,
-    instances_db_name=str,
-    instances=list,
-    require_delete=bool,
-    tag_key=str
+    selected_account: dict,
+    instance_tag: dict,
+    instances_db_name: str,
+    instances: list,
+    require_delete: bool,
+    tag_key: str
 ):
     arn = selected_account['arn']
     region = selected_account['region']

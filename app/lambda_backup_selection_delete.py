@@ -4,7 +4,6 @@ import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
-from app.fn_get_client import get_client
 from app.fn_modify_asg_tags import modify_asg_tags
 
 from . import common
@@ -18,16 +17,14 @@ def lambda_handler(event, context):
     asg_db_name = os.environ['asgDB']
 
     backup_table = boto3.resource('dynamodb').Table(backup_selection_db_name)
-    instances_table = boto3.resource('dynamodb').Table(instances_db_name)
-    asg_table = boto3.resource('dynamodb').Table(asg_db_name)
+
+    BackupPlanId = event['pathParameters']['backupPlanId']
+    SelectionId = event['pathParameters']['selectionId']
 
     request = common.json_body_as_dict(event)
 
     arn = request['arn']
     region = request['region']
-
-    BackupPlanId = request['backupPlanId']
-    SelectionId = request['selectionId']
 
     backup_table_response = backup_table.query(
         TableName=backup_selection_db_name,
@@ -44,7 +41,7 @@ def lambda_handler(event, context):
     if 'AutoScalingGroups' in backup_table_response:
         _remove_asg_tags(backup_table_response, request, asg_db_name)
 
-    return common.delete_backup_selection_db(backup_selection_db_name, SelectionId)
+    return common.delete_backup_selection_db(backup_table, SelectionId)
 
 
 def _remove_instance_tags(backup_table_response, request, instances_db_name):

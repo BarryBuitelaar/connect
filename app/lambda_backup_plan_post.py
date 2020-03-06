@@ -39,7 +39,7 @@ def lambda_handler(event, context):
         ]
     }
 
-    if replication == 'true':
+    if replication == True:
         ReplRegion = request['repl_region']
         ReplRetention = int(request['repl_retention']) if request['replication'] else None
         CopyVaultArn = F'arn:aws:backup:{ReplRegion}:{account_id}:backup-vault:Default'
